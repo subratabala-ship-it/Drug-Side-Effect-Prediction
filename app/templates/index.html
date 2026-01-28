@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="p-5 mb-4 bg-light rounded-3">
+    <div class="container-fluid py-5">
+        <h1 class="display-5 fw-bold">💊 Drug Side Effect Prediction System</h1>
+        <p class="col-md-8 fs-4">Personalized Patient Care using Machine Learning</p>
+        <p>Predict <strong>possible drug side effects</strong> based on patient age group and disease condition.</p>
+        <a class="btn btn-primary btn-lg" href="{{ url_for('prediction_page') }}" role="button">Start Prediction</a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <h3>🏠 Home</h3>
+        <p>
+            Adverse Drug Reactions (ADRs) are a major concern in healthcare.
+            This system helps predict <strong>potential side effects</strong> of medicines
+            based on patient <strong>age group</strong> and <strong>disease condition</strong>.
+        </p>
+    </div>
+    <div class="col-md-6">
+        <h3>🎯 Key Features</h3>
+        <ul>
+            <li>Multi‑label side effect prediction</li>
+            <li>Age‑wise risk analysis</li>
+            <li>Disease‑specific insights</li>
+            <li>Machine learning‑based decision support</li>
+        </ul>
+        <div class="alert alert-info">⚠️ This system supports doctors but does not replace clinical judgment.</div>
+    </div>
+</div>
+{% endblock %}

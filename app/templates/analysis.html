@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>📊 Age & Disease Analysis</h2>
+<p class="lead">This section shows how different age groups respond to medicines based on historical data.</p>
+<hr>
+
+<div class="row mt-4">
+    <div class="col-md-4">
+        <h3>👶 Children</h3>
+        <p>- Higher risk of allergy reactions</p>
+    </div>
+    <div class="col-md-4">
+        <h3>🧑 Adults</h3>
+        <p>- Moderate side effects depending on dosage</p>
+    </div>
+    <div class="col-md-4">
+        <h3>👴 Elderly</h3>
+        <p>- Higher risk due to metabolism and organ sensitivity</p>
+    </div>
+</div>
+
+<div class="alert alert-info mt-4">Graphs will be added after backend integration.</div>
+<div class="text-center mt-4">
+    <a href="{{ url_for('prediction_page') }}" class="btn btn-outline-primary">Go to Prediction</a>
+</div>
+{% endblock %}

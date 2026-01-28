@@ -1,0 +1,38 @@
+body {
+    padding-top: 20px;
+    background-color: #f8f9fa;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.navbar {
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.card {
+    border: none;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    transition: transform 0.2s;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+}
+
+h1, h2, h3, h4, h5 {
+    color: #2c3e50;
+}
+
+/* Specific styles for the prediction result area */
+#resultSection {
+    background-color: #ffffff;
+    padding: 20px;
+    border-radius: 8px;
+    border: 1px solid #e9ecef;
+}
+
+footer {
+    margin-top: 3rem;
+    padding: 1.5rem 0;
+    color: #6c757d;
+    border-top: 1px solid #dee2e6;
+}

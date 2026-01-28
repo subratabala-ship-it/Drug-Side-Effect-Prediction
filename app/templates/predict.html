@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>🔍 Predict Drug Side Effects</h2>
+<hr>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-primary text-white">Patient Details</div>
+            <div class="card-body">
+                <form id="predictionForm">
+                    <div class="mb-3">
+                        <label for="drugName" class="form-label">💊 Medicine Name</label>
+                        <input type="text" class="form-control" id="drugName" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="ageGroup" class="form-label">👤 Age Group</label>
+                        <select class="form-select" id="ageGroup">
+                            <option value="Child (0‑12)">Child (0‑12)</option>
+                            <option value="Adult (13‑59)">Adult (13‑59)</option>
+                            <option value="Elderly (60+)">Elderly (60+)</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="disease" class="form-label">🦠 Disease / Condition</label>
+                        <input type="text" class="form-control" id="disease" required>
+                    </div>
+                    <button type="submit" class="btn btn-success w-100">Predict</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div id="resultSection" class="d-none">
+            <div class="alert alert-success">Prediction Result</div>
+            
+            <h4>⚠️ Possible Side Effects</h4>
+            <ul id="sideEffectsList" class="list-group mb-3">
+                <!-- Items will be added here by JS -->
+            </ul>
+
+            <h4>📊 Risk Level</h4>
+            <div id="warningMsg" class="alert alert-warning d-none"></div>
+            
+            <p class="text-muted small mt-3">⚠️ Demo output – ML model will be connected later.</p>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('predictionForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const drugName = document.getElementById('drugName').value;
+    const ageGroup = document.getElementById('ageGroup').value;
+    const disease = document.getElementById('disease').value;
+
+    const response = await fetch('/predict', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ drug_name: drugName, age_group: ageGroup, disease: disease })
+    });
+
+    const data = await response.json();
+
+    if (data.status === 'success') {
+        document.getElementById('resultSection').classList.remove('d-none');
+        const list = document.getElementById('sideEffectsList');
+        list.innerHTML = data.side_effects.map(effect => `<li class="list-group-item">${effect}</li>`).join('');
+        
+        const warningDiv = document.getElementById('warningMsg');
+        warningDiv.textContent = data.warning;
+        data.warning ? warningDiv.classList.remove('d-none') : warningDiv.classList.add('d-none');
+    }
+});
+</script>
+{% endblock %}
