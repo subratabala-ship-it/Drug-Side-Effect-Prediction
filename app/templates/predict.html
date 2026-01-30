@@ -1,79 +1,1464 @@
-{% extends "base.html" %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Drug Side Effect Prediction - MedPredict AI</title>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary: #00d9ff;
+            --primary-dark: #00a8cc;
+            --secondary: #7c3aed;
+            --accent: #ec4899;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            
+            --bg-primary: #0a0e1a;
+            --bg-secondary: #151b2e;
+            --bg-card: rgba(21, 27, 46, 0.6);
+            --bg-glass: rgba(255, 255, 255, 0.05);
+            
+            --text-primary: #ffffff;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            
+            --border: rgba(255, 255, 255, 0.1);
+            --shadow: 0 20px 60px rgba(0, 217, 255, 0.15);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            overflow-x: hidden;
+            position: relative;
+            min-height: 100vh;
+        }
+        
+        /* Animated Background */
+        body::before {
+            content: '';
+            position: fixed;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(124, 58, 237, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(0, 217, 255, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 40% 20%, rgba(236, 72, 153, 0.08) 0%, transparent 50%);
+            animation: rotate 60s linear infinite;
+            z-index: -1;
+        }
+        
+        @keyframes rotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Grid Pattern Overlay */
+        body::after {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: 
+                linear-gradient(rgba(0, 217, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 217, 255, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            pointer-events: none;
+            z-index: -1;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        /* Header */
+        header {
+            text-align: center;
+            padding: 3rem 0 2rem;
+        }
+        
+        .page-title {
+            font-size: 3rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary), var(--secondary), var(--accent));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+            animation: slideDown 0.8s ease-out;
+        }
+        
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .page-subtitle {
+            color: var(--text-secondary);
+            font-size: 1.2rem;
+            animation: fadeIn 0.8s ease-out 0.2s both;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        /* Progress Steps */
+        .progress-container {
+            margin: 3rem 0;
+            animation: fadeIn 0.8s ease-out 0.4s both;
+        }
+        
+        .progress-steps {
+            display: flex;
+            justify-content: space-between;
+            position: relative;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .progress-steps::before {
+            content: '';
+            position: absolute;
+            top: 25px;
+            left: 50px;
+            right: 50px;
+            height: 3px;
+            background: var(--border);
+            z-index: -1;
+        }
+        
+        .progress-line {
+            position: absolute;
+            top: 25px;
+            left: 50px;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            z-index: -1;
+            transition: width 0.5s ease;
+        }
+        
+        .step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex: 1;
+            position: relative;
+        }
+        
+        .step-circle {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: var(--bg-card);
+            border: 3px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.2rem;
+            margin-bottom: 0.8rem;
+            transition: all 0.3s ease;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .step.active .step-circle {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-color: var(--primary);
+            box-shadow: 0 0 30px rgba(0, 217, 255, 0.5);
+            transform: scale(1.1);
+        }
+        
+        .step.completed .step-circle {
+            background: var(--success);
+            border-color: var(--success);
+        }
+        
+        .step-circle::after {
+            content: '✓';
+            position: absolute;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .step.completed .step-circle::after {
+            opacity: 1;
+        }
+        
+        .step-label {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            text-align: center;
+            transition: color 0.3s ease;
+        }
+        
+        .step.active .step-label {
+            color: var(--primary);
+            font-weight: 600;
+        }
+        
+        /* Form Container */
+        .form-container {
+            background: var(--bg-card);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 3rem;
+            box-shadow: var(--shadow);
+            animation: scaleIn 0.6s ease-out 0.6s both;
+        }
+        
+        @keyframes scaleIn {
+            from {
+                opacity: 0;
+                transform: scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+        
+        .step-content {
+            display: none;
+        }
+        
+        .step-content.active {
+            display: block;
+            animation: slideIn 0.5s ease-out;
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        
+        .form-section-title {
+            font-size: 1.8rem;
+            margin-bottom: 0.5rem;
+            color: var(--text-primary);
+        }
+        
+        .form-section-subtitle {
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+        }
+        
+        /* Form Elements */
+        .form-group {
+            margin-bottom: 2rem;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 0.8rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+            font-size: 1rem;
+        }
+        
+        .form-label .required {
+            color: var(--danger);
+        }
+        
+        .form-input,
+        .form-select {
+            width: 100%;
+            padding: 1rem 1.5rem;
+            background: rgba(10, 14, 26, 0.6);
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            color: var(--text-primary);
+            font-size: 1rem;
+            font-family: 'Outfit', sans-serif;
+            transition: all 0.3s ease;
+            outline: none;
+        }
+        
+        .form-input:focus,
+        .form-select:focus {
+            border-color: var(--primary);
+            background: rgba(10, 14, 26, 0.8);
+            box-shadow: 0 0 0 4px rgba(0, 217, 255, 0.1);
+        }
+        
+        .form-select {
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%2300d9ff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 1rem center;
+            background-size: 20px;
+            padding-right: 3rem;
+        }
+        
+        /* Checkbox Grid for Diseases */
+        .checkbox-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 1rem;
+        }
+        
+        .checkbox-card {
+            position: relative;
+        }
+        
+        .checkbox-card input[type="checkbox"] {
+            position: absolute;
+            opacity: 0;
+            cursor: pointer;
+        }
+        
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1.2rem 1.5rem;
+            background: rgba(10, 14, 26, 0.6);
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .checkbox-card input[type="checkbox"]:checked + .checkbox-label {
+            background: rgba(0, 217, 255, 0.1);
+            border-color: var(--primary);
+            box-shadow: 0 0 20px rgba(0, 217, 255, 0.2);
+        }
+        
+        .checkbox-label:hover {
+            border-color: var(--primary);
+            transform: translateY(-2px);
+        }
+        
+        .checkbox-icon {
+            font-size: 1.8rem;
+        }
+        
+        .checkbox-text {
+            flex: 1;
+        }
+        
+        .checkbox-title {
+            font-weight: 600;
+            margin-bottom: 0.2rem;
+        }
+        
+        .checkbox-desc {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+        
+        /* Medicine List */
+        .medicine-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .medicine-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            background: rgba(10, 14, 26, 0.4);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+        }
+        
+        .medicine-item input {
+            flex: 1;
+        }
+        
+        .remove-btn {
+            padding: 0.5rem 1rem;
+            background: var(--danger);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+        
+        .remove-btn:hover {
+            background: #dc2626;
+            transform: translateY(-2px);
+        }
+        
+        .add-medicine-btn {
+            width: 100%;
+            padding: 1rem;
+            background: rgba(0, 217, 255, 0.1);
+            border: 2px dashed var(--primary);
+            border-radius: 12px;
+            color: var(--primary);
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+        
+        .add-medicine-btn:hover {
+            background: rgba(0, 217, 255, 0.2);
+            transform: translateY(-2px);
+        }
+        
+        /* Button Group */
+        .button-group {
+            display: flex;
+            gap: 1rem;
+            margin-top: 3rem;
+        }
+        
+        .btn {
+            flex: 1;
+            padding: 1.2rem 2rem;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            font-family: 'Outfit', sans-serif;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: var(--bg-primary);
+            box-shadow: 0 10px 30px rgba(0, 217, 255, 0.3);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(0, 217, 255, 0.4);
+        }
+        
+        .btn-secondary {
+            background: transparent;
+            color: var(--text-secondary);
+            border: 2px solid var(--border);
+        }
+        
+        .btn-secondary:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+            transform: translateY(-3px);
+        }
+        
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .btn:disabled:hover {
+            transform: none;
+        }
+        
+        /* Results Section */
+        .results-container {
+            display: none;
+        }
+        
+        .results-container.active {
+            display: block;
+            animation: fadeIn 0.8s ease-out;
+        }
+        
+        .results-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+        
+        .results-title {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, var(--success), var(--primary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .result-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 2rem;
+            transition: all 0.3s ease;
+        }
+        
+        .result-card:hover {
+            border-color: var(--primary);
+            transform: translateY(-5px);
+            box-shadow: 0 20px 60px rgba(0, 217, 255, 0.2);
+        }
+        
+        .result-card-title {
+            font-size: 1.3rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .result-icon {
+            font-size: 1.5rem;
+        }
+        
+        .medicine-name {
+            font-size: 1.1rem;
+            color: var(--primary);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        
+        .disease-tag {
+            display: inline-block;
+            padding: 0.3rem 0.8rem;
+            background: rgba(124, 58, 237, 0.2);
+            border: 1px solid var(--secondary);
+            border-radius: 20px;
+            font-size: 0.85rem;
+            margin-bottom: 1rem;
+        }
+        
+        .side-effects-list {
+            list-style: none;
+        }
+        
+        .side-effect-item {
+            padding: 0.8rem;
+            margin-bottom: 0.5rem;
+            background: rgba(239, 68, 68, 0.1);
+            border-left: 3px solid var(--danger);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .severity {
+            padding: 0.2rem 0.6rem;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-left: auto;
+        }
+        
+        .severity-low {
+            background: rgba(16, 185, 129, 0.2);
+            color: var(--success);
+        }
+        
+        .severity-medium {
+            background: rgba(245, 158, 11, 0.2);
+            color: var(--warning);
+        }
+        
+        .severity-high {
+            background: rgba(239, 68, 68, 0.2);
+            color: var(--danger);
+        }
+        
+        .interactions-warning {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(239, 68, 68, 0.1));
+            border: 2px solid var(--warning);
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .warning-title {
+            font-size: 1.5rem;
+            color: var(--warning);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .interaction-item {
+            padding: 1rem;
+            background: rgba(10, 14, 26, 0.6);
+            border-radius: 12px;
+            margin-bottom: 1rem;
+        }
+        
+        .interaction-medicines {
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-top: 3rem;
+        }
+        
+        /* Loading Animation */
+        .loading-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(10, 14, 26, 0.95);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .loading-overlay.active {
+            display: flex;
+        }
+        
+        .loading-content {
+            text-align: center;
+        }
+        
+        .loader {
+            width: 80px;
+            height: 80px;
+            border: 4px solid var(--border);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 2rem;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .loading-text {
+            font-size: 1.2rem;
+            color: var(--text-secondary);
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .page-title {
+                font-size: 2rem;
+            }
+            
+            .progress-steps {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .progress-steps::before,
+            .progress-line {
+                display: none;
+            }
+            
+            .step {
+                flex-direction: row;
+                width: 100%;
+                margin-bottom: 1rem;
+            }
+            
+            .step-circle {
+                margin-bottom: 0;
+                margin-right: 1rem;
+            }
+            
+            .step-label {
+                text-align: left;
+            }
+            
+            .form-container {
+                padding: 2rem 1.5rem;
+            }
+            
+            .checkbox-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .button-group {
+                flex-direction: column-reverse;
+            }
+            
+            .results-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-content">
+            <div class="loader"></div>
+            <div class="loading-text">Analyzing drug interactions...</div>
+        </div>
+    </div>
 
-{% block content %}
-<h2>🔍 Predict Drug Side Effects</h2>
-<hr>
-
-<div class="row">
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-header bg-primary text-white">Patient Details</div>
-            <div class="card-body">
-                <form id="predictionForm">
-                    <div class="mb-3">
-                        <label for="drugName" class="form-label">💊 Medicine Name</label>
-                        <input type="text" class="form-control" id="drugName" required>
+    <div class="container">
+        <!-- Header -->
+        <header>
+            <h1 class="page-title">💊 Drug Side Effect Predictor</h1>
+            <p class="page-subtitle">Predict potential side effects based on your medications and conditions</p>
+        </header>
+        
+        <!-- Progress Steps -->
+        <div class="progress-container">
+            <div class="progress-steps">
+                <div class="progress-line" id="progressLine"></div>
+                
+                <div class="step active" data-step="1">
+                    <div class="step-circle">1</div>
+                    <div class="step-label">Ongoing Diseases</div>
+                </div>
+                
+                <div class="step" data-step="2">
+                    <div class="step-circle">2</div>
+                    <div class="step-label">Current Medications</div>
+                </div>
+                
+                <div class="step" data-step="3">
+                    <div class="step-circle">3</div>
+                    <div class="step-label">New Condition</div>
+                </div>
+                
+                <div class="step" data-step="4">
+                    <div class="step-circle">4</div>
+                    <div class="step-label">Results</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Form Container -->
+        <div class="form-container">
+            <!-- Step 1: Ongoing Diseases -->
+            <div class="step-content active" data-step="1">
+                <h2 class="form-section-title">Select Your Ongoing Diseases</h2>
+                <p class="form-section-subtitle">Choose all conditions you currently have</p>
+                
+                <div class="checkbox-grid" id="diseasesGrid">
+                    <div class="checkbox-card">
+                        <input type="checkbox" id="disease-bp" value="High Blood Pressure">
+                        <label class="checkbox-label" for="disease-bp">
+                            <div class="checkbox-icon"></div>
+                            <div class="checkbox-text">
+                                <div class="checkbox-title">High Blood Pressure</div>
+                                <div class="checkbox-desc">Hypertension</div>
+                            </div>
+                        </label>
                     </div>
-                    <div class="mb-3">
-                        <label for="ageGroup" class="form-label">👤 Age Group</label>
-                        <select class="form-select" id="ageGroup">
-                            <option value="Child (0‑12)">Child (0‑12)</option>
-                            <option value="Adult (13‑59)">Adult (13‑59)</option>
-                            <option value="Elderly (60+)">Elderly (60+)</option>
+                    
+                    <div class="checkbox-card">
+                        <input type="checkbox" id="disease-diabetes" value="Diabetes">
+                        <label class="checkbox-label" for="disease-diabetes">
+                            <div class="checkbox-icon"></div>
+                            <div class="checkbox-text">
+                                <div class="checkbox-title">Diabetes</div>
+                                <div class="checkbox-desc">Blood sugar condition</div>
+                            </div>
+                        </label>
+                    </div>
+                    
+                    <div class="checkbox-card">
+                        <input type="checkbox" id="disease-heart" value="Heart Disease">
+                        <label class="checkbox-label" for="disease-heart">
+                            <div class="checkbox-icon"></div>
+                            <div class="checkbox-text">
+                                <div class="checkbox-title">Heart Disease</div>
+                                <div class="checkbox-desc">Cardiovascular issues</div>
+                            </div>
+                        </label>
+                    </div>
+                    
+                    <div class="checkbox-card">
+                        <input type="checkbox" id="disease-kidney" value="Kidney Disease">
+                        <label class="checkbox-label" for="disease-kidney">
+                            <div class="checkbox-icon"></div>
+                            <div class="checkbox-text">
+                                <div class="checkbox-title">Kidney Disease</div>
+                                <div class="checkbox-desc">Renal problems</div>
+                            </div>
+                        </label>
+                    </div>
+                    
+                    <div class="checkbox-card">
+                        <input type="checkbox" id="disease-thyroid" value="Thyroid Disorder">
+                        <label class="checkbox-label" for="disease-thyroid">
+                            <div class="checkbox-icon"></div>
+                            <div class="checkbox-text">
+                                <div class="checkbox-title">Thyroid Disorder</div>
+                                <div class="checkbox-desc">Hormone imbalance</div>
+                            </div>
+                        </label>
+                    </div>
+                    
+                    <div class="checkbox-card">
+                        <input type="checkbox" id="disease-asthma" value="Asthma">
+                        <label class="checkbox-label" for="disease-asthma">
+                            <div class="checkbox-icon"></div>
+                            <div class="checkbox-text">
+                                <div class="checkbox-title">Asthma</div>
+                                <div class="checkbox-desc">Respiratory condition</div>
+                            </div>
+                        </label>
+                    </div>
+                    
+                    <div class="checkbox-card">
+                        <input type="checkbox" id="disease-arthritis" value="Arthritis">
+                        <label class="checkbox-label" for="disease-arthritis">
+                            <div class="checkbox-icon"></div>
+                            <div class="checkbox-text">
+                                <div class="checkbox-title">Arthritis</div>
+                                <div class="checkbox-desc">Joint inflammation</div>
+                            </div>
+                        </label>
+                    </div>
+                    
+                    <div class="checkbox-card">
+                        <input type="checkbox" id="disease-liver" value="Liver Disease">
+                        <label class="checkbox-label" for="disease-liver">
+                            <div class="checkbox-icon"></div>
+                            <div class="checkbox-text">
+                                <div class="checkbox-title">Liver Disease</div>
+                                <div class="checkbox-desc">Hepatic problems</div>
+                            </div>
+                        </label>
+                    </div>
+                    
+                    <div class="checkbox-card">
+                        <input type="checkbox" id="disease-cholesterol" value="High Cholesterol">
+                        <label class="checkbox-label" for="disease-cholesterol">
+                            <div class="checkbox-icon"></div>
+                            <div class="checkbox-text">
+                                <div class="checkbox-title">High Cholesterol</div>
+                                <div class="checkbox-desc">Lipid disorder</div>
+                            </div>
+                        </label>
+                    </div>
+                    
+                    <div class="checkbox-card">
+                        <input type="checkbox" id="disease-gerd" value="GERD">
+                        <label class="checkbox-label" for="disease-gerd">
+                            <div class="checkbox-icon"></div>
+                            <div class="checkbox-text">
+                                <div class="checkbox-title">GERD</div>
+                                <div class="checkbox-desc">Acid reflux</div>
+                            </div>
+                        </label>
+                    </div>
+                    
+                    <div class="checkbox-card">
+                        <input type="checkbox" id="disease-migraine" value="Migraine">
+                        <label class="checkbox-label" for="disease-migraine">
+                            <div class="checkbox-icon"></div>
+                            <div class="checkbox-text">
+                                <div class="checkbox-title">Migraine</div>
+                                <div class="checkbox-desc">Severe headaches</div>
+                            </div>
+                        </label>
+                    </div>
+                    
+                    <div class="checkbox-card">
+                        <input type="checkbox" id="disease-osteoporosis" value="Osteoporosis">
+                        <label class="checkbox-label" for="disease-osteoporosis">
+                            <div class="checkbox-icon"></div>
+                            <div class="checkbox-text">
+                                <div class="checkbox-title">Osteoporosis</div>
+                                <div class="checkbox-desc">Bone weakness</div>
+                            </div>
+                        </label>
+                    </div>
+                    
+                    <div class="checkbox-card">
+                        <input type="checkbox" id="disease-other" value="Other">
+                        <label class="checkbox-label" for="disease-other">
+                            <div class="checkbox-icon"></div>
+                            <div class="checkbox-text">
+                                <div class="checkbox-title">Other</div>
+                                <div class="checkbox-desc">Enter manually</div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+                
+                <!-- Other Disease Input (shown when "Other" is selected) -->
+                <div class="form-group" id="otherDiseaseContainer" style="display: none; margin-top: 2rem;">
+                    <label class="form-label">Enter Other Disease(s)</label>
+                    <input type="text" class="form-input" id="otherDiseaseInput" placeholder="Type disease name (e.g., Epilepsy, Psoriasis)">
+                    <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.5rem;">
+                        💡 Separate multiple diseases with commas
+                    </p>
+                </div>
+                
+                <div class="button-group">
+                    <button class="btn btn-secondary" onclick="window.location.href='index.html'">Cancel</button>
+                    <button class="btn btn-primary" onclick="nextStep()">Next Step →</button>
+                </div>
+            </div>
+            
+            <!-- Step 2: Current Medications -->
+            <div class="step-content" data-step="2">
+                <h2 class="form-section-title">Current Medications</h2>
+                <p class="form-section-subtitle">List all medicines you're currently taking</p>
+                
+                <div class="medicine-list" id="medicineList">
+                    <div class="medicine-item">
+                        <input type="text" class="form-input medicine-input" placeholder="Enter medicine name (e.g., Lisinopril)">
+                        <select class="form-select disease-select">
+                            <option value="">For which disease?</option>
                         </select>
+                        <button class="remove-btn" onclick="removeMedicine(this)" style="display: none;">✕</button>
                     </div>
-                    <div class="mb-3">
-                        <label for="disease" class="form-label">🦠 Disease / Condition</label>
-                        <input type="text" class="form-control" id="disease" required>
-                    </div>
-                    <button type="submit" class="btn btn-success w-100">Predict</button>
-                </form>
+                </div>
+                
+                <button class="add-medicine-btn" onclick="addMedicine()">
+                    <span>➕</span> Add Another Medicine
+                </button>
+                
+                <div class="button-group">
+                    <button class="btn btn-secondary" onclick="prevStep()">← Previous</button>
+                    <button class="btn btn-primary" onclick="nextStep()">Next Step →</button>
+                </div>
+            </div>
+            
+            <!-- Step 3: New Condition -->
+            <div class="step-content" data-step="3">
+                <h2 class="form-section-title">New Condition or Issue</h2>
+                <p class="form-section-subtitle">What new condition do you need treatment for?</p>
+                
+                <div class="form-group">
+                    <label class="form-label">
+                        Select Current Issue/Disease <span class="required">*</span>
+                    </label>
+                    <select class="form-select" id="newCondition" required>
+                        <option value="">-- Select Condition --</option>
+                        <option value="Fever">Fever</option>
+                        <option value="Headache">Headache</option>
+                        <option value="Infection">Bacterial Infection</option>
+                        <option value="Pain">Chronic Pain</option>
+                        <option value="Inflammation">Inflammation</option>
+                        <option value="Anxiety">Anxiety</option>
+                        <option value="Depression">Depression</option>
+                        <option value="Allergy">Allergic Reaction</option>
+                        <option value="Insomnia">Insomnia</option>
+                        <option value="Nausea">Nausea/Vomiting</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">
+                        Patient Age Group <span class="required">*</span>
+                    </label>
+                    <select class="form-select" id="ageGroup" required>
+                        <option value="">-- Select Age Group --</option>
+                        <option value="Child">Child (0-12 years)</option>
+                        <option value="Adult">Adult (13-59 years)</option>
+                        <option value="Elderly">Elderly (60+ years)</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Additional Notes (Optional)</label>
+                    <textarea class="form-input" id="additionalNotes" rows="3" placeholder="Any other relevant medical information..."></textarea>
+                </div>
+                
+                <div class="button-group">
+                    <button class="btn btn-secondary" onclick="prevStep()">← Previous</button>
+                    <button class="btn btn-primary" onclick="analyzePrediction()">Analyze & Predict 🔮</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Results Container -->
+        <div class="results-container" id="resultsContainer">
+            <div class="results-header">
+                <h2 class="results-title">📊 Prediction Results</h2>
+                <p class="page-subtitle">Here's what our AI found about potential side effects</p>
+            </div>
+            
+            <div class="interactions-warning" id="interactionsWarning" style="display: none;">
+                <h3 class="warning-title">⚠️ Drug Interaction Warnings</h3>
+                <div id="interactionsList"></div>
+            </div>
+            
+            <div class="results-grid" id="resultsGrid">
+                <!-- Results will be dynamically inserted here -->
+            </div>
+            
+            <div class="action-buttons">
+                <button class="btn btn-secondary" onclick="resetForm()"> Start New Prediction</button>
+                <button class="btn btn-primary" onclick="window.print()"> Print Results</button>
             </div>
         </div>
     </div>
-
-    <div class="col-md-6">
-        <div id="resultSection" class="d-none">
-            <div class="alert alert-success">Prediction Result</div>
-            
-            <h4>⚠️ Possible Side Effects</h4>
-            <ul id="sideEffectsList" class="list-group mb-3">
-                <!-- Items will be added here by JS -->
-            </ul>
-
-            <h4>📊 Risk Level</h4>
-            <div id="warningMsg" class="alert alert-warning d-none"></div>
-            
-            <p class="text-muted small mt-3">⚠️ Demo output – ML model will be connected later.</p>
-        </div>
-    </div>
-</div>
-
-<script>
-document.getElementById('predictionForm').addEventListener('submit', async function(e) {
-    e.preventDefault();
     
-    const drugName = document.getElementById('drugName').value;
-    const ageGroup = document.getElementById('ageGroup').value;
-    const disease = document.getElementById('disease').value;
-
-    const response = await fetch('/predict', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ drug_name: drugName, age_group: ageGroup, disease: disease })
-    });
-
-    const data = await response.json();
-
-    if (data.status === 'success') {
-        document.getElementById('resultSection').classList.remove('d-none');
-        const list = document.getElementById('sideEffectsList');
-        list.innerHTML = data.side_effects.map(effect => `<li class="list-group-item">${effect}</li>`).join('');
+    <script>
+        let currentStep = 1;
+        let selectedDiseases = [];
+        let currentMedicines = [];
         
-        const warningDiv = document.getElementById('warningMsg');
-        warningDiv.textContent = data.warning;
-        data.warning ? warningDiv.classList.remove('d-none') : warningDiv.classList.add('d-none');
-    }
-});
-</script>
-{% endblock %}
+        // Handle "Other" disease checkbox
+        document.getElementById('disease-other').addEventListener('change', function() {
+            const otherContainer = document.getElementById('otherDiseaseContainer');
+            if (this.checked) {
+                otherContainer.style.display = 'block';
+            } else {
+                otherContainer.style.display = 'none';
+                document.getElementById('otherDiseaseInput').value = '';
+            }
+        });
+        
+        // Sample medicine database for each disease
+        const medicineDatabase = {
+            'High Blood Pressure': ['Lisinopril', 'Amlodipine', 'Losartan', 'Metoprolol', 'Hydrochlorothiazide'],
+            'Diabetes': ['Metformin', 'Glipizide', 'Insulin', 'Sitagliptin', 'Empagliflozin'],
+            'Heart Disease': ['Aspirin', 'Atorvastatin', 'Clopidogrel', 'Warfarin', 'Carvedilol'],
+            'Kidney Disease': ['Furosemide', 'Spironolactone', 'Calcium Carbonate', 'Epoetin Alfa'],
+            'Thyroid Disorder': ['Levothyroxine', 'Methimazole', 'Propylthiouracil'],
+            'Asthma': ['Albuterol', 'Fluticasone', 'Montelukast', 'Budesonide'],
+            'Arthritis': ['Ibuprofen', 'Naproxen', 'Celecoxib', 'Methotrexate'],
+            'Liver Disease': ['Ursodiol', 'Lactulose', 'Rifaximin'],
+            'High Cholesterol': ['Atorvastatin', 'Simvastatin', 'Rosuvastatin'],
+            'GERD': ['Omeprazole', 'Pantoprazole', 'Esomeprazole'],
+            'Migraine': ['Sumatriptan', 'Topiramate', 'Propranolol'],
+            'Osteoporosis': ['Alendronate', 'Calcium', 'Vitamin D']
+        };
+        
+        // Sample predicted medicines for new conditions
+        const predictedMedicines = {
+            'Fever': ['Acetaminophen', 'Ibuprofen'],
+            'Headache': ['Aspirin', 'Ibuprofen', 'Naproxen'],
+            'Infection': ['Amoxicillin', 'Azithromycin', 'Ciprofloxacin'],
+            'Pain': ['Tramadol', 'Gabapentin', 'Duloxetine'],
+            'Inflammation': ['Prednisone', 'Naproxen', 'Celecoxib'],
+            'Anxiety': ['Sertraline', 'Escitalopram', 'Lorazepam'],
+            'Depression': ['Fluoxetine', 'Sertraline', 'Bupropion'],
+            'Allergy': ['Cetirizine', 'Loratadine', 'Diphenhydramine'],
+            'Insomnia': ['Zolpidem', 'Melatonin', 'Trazodone'],
+            'Nausea': ['Ondansetron', 'Metoclopramide', 'Promethazine']
+        };
+        
+        // Sample side effects database
+        const sideEffectsDatabase = {
+            'Acetaminophen': [
+                { effect: 'Liver damage (with overdose)', severity: 'high' },
+                { effect: 'Nausea', severity: 'low' },
+                { effect: 'Skin rash', severity: 'medium' }
+            ],
+            'Ibuprofen': [
+                { effect: 'Stomach upset', severity: 'medium' },
+                { effect: 'Increased blood pressure', severity: 'high' },
+                { effect: 'Kidney problems', severity: 'high' },
+                { effect: 'Dizziness', severity: 'low' }
+            ],
+            'Amoxicillin': [
+                { effect: 'Diarrhea', severity: 'medium' },
+                { effect: 'Allergic reaction', severity: 'high' },
+                { effect: 'Nausea', severity: 'low' }
+            ],
+            'Lisinopril': [
+                { effect: 'Dry cough', severity: 'medium' },
+                { effect: 'Dizziness', severity: 'medium' },
+                { effect: 'High potassium', severity: 'high' }
+            ],
+            'Metformin': [
+                { effect: 'Nausea', severity: 'medium' },
+                { effect: 'Diarrhea', severity: 'medium' },
+                { effect: 'Vitamin B12 deficiency', severity: 'low' }
+            ],
+            'Aspirin': [
+                { effect: 'Stomach bleeding', severity: 'high' },
+                { effect: 'Bruising', severity: 'medium' },
+                { effect: 'Ringing in ears', severity: 'low' }
+            ]
+        };
+        
+        // Drug interactions database
+        const interactionsDatabase = {
+            'Ibuprofen+Lisinopril': 'May reduce effectiveness of blood pressure medication',
+            'Ibuprofen+Aspirin': 'Increased risk of stomach bleeding',
+            'Aspirin+Warfarin': 'Dangerously increased bleeding risk',
+            'Metformin+Furosemide': 'May increase risk of lactic acidosis'
+        };
+        
+        // Update progress
+        function updateProgress() {
+            const steps = document.querySelectorAll('.step');
+            const progressLine = document.getElementById('progressLine');
+            
+            steps.forEach((step, index) => {
+                const stepNum = index + 1;
+                step.classList.remove('active', 'completed');
+                
+                if (stepNum < currentStep) {
+                    step.classList.add('completed');
+                } else if (stepNum === currentStep) {
+                    step.classList.add('active');
+                }
+            });
+            
+            // Update progress line
+            const progress = ((currentStep - 1) / 3) * 100;
+            if (progressLine) {
+                progressLine.style.width = `calc(${progress}% - 0px)`;
+            }
+        }
+        
+        // Next step
+        function nextStep() {
+            if (currentStep === 1) {
+                // Validate diseases selection
+                const checkboxes = document.querySelectorAll('#diseasesGrid input[type="checkbox"]:checked');
+                selectedDiseases = Array.from(checkboxes).map(cb => cb.value);
+                
+                // Handle "Other" diseases
+                const otherCheckbox = document.getElementById('disease-other');
+                if (otherCheckbox.checked) {
+                    const otherInput = document.getElementById('otherDiseaseInput').value.trim();
+                    if (otherInput) {
+                        // Split by comma and add each disease
+                        const otherDiseases = otherInput.split(',').map(d => d.trim()).filter(d => d);
+                        // Remove "Other" from list and add custom diseases
+                        selectedDiseases = selectedDiseases.filter(d => d !== 'Other');
+                        selectedDiseases = [...selectedDiseases, ...otherDiseases];
+                    } else {
+                        alert('Please enter at least one disease in the "Other" field or uncheck it');
+                        return;
+                    }
+                }
+                
+                if (selectedDiseases.length === 0) {
+                    alert('Please select at least one ongoing disease');
+                    return;
+                }
+                
+                // Update disease dropdowns in medicine list
+                updateDiseaseDropdowns();
+            } else if (currentStep === 2) {
+                // Validate medicines
+                const medicineInputs = document.querySelectorAll('.medicine-input');
+                currentMedicines = [];
+                
+                medicineInputs.forEach((input, index) => {
+                    const medicineName = input.value.trim();
+                    const diseaseSelect = document.querySelectorAll('.disease-select')[index];
+                    const disease = diseaseSelect.value;
+                    
+                    if (medicineName && disease) {
+                        currentMedicines.push({
+                            name: medicineName,
+                            disease: disease
+                        });
+                    }
+                });
+                
+                if (currentMedicines.length === 0) {
+                    alert('Please add at least one medicine with its associated disease');
+                    return;
+                }
+            }
+            
+            if (currentStep < 4) {
+                // Hide current step
+                document.querySelector(`.step-content[data-step="${currentStep}"]`).classList.remove('active');
+                
+                // Show next step
+                currentStep++;
+                document.querySelector(`.step-content[data-step="${currentStep}"]`).classList.add('active');
+                
+                updateProgress();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        }
+        
+        // Previous step
+        function prevStep() {
+            if (currentStep > 1) {
+                // Hide current step
+                document.querySelector(`.step-content[data-step="${currentStep}"]`).classList.remove('active');
+                
+                // Show previous step
+                currentStep--;
+                document.querySelector(`.step-content[data-step="${currentStep}"]`).classList.add('active');
+                
+                updateProgress();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        }
+        
+        // Update disease dropdowns
+        function updateDiseaseDropdowns() {
+            const selects = document.querySelectorAll('.disease-select');
+            selects.forEach(select => {
+                select.innerHTML = '<option value="">For which disease?</option>';
+                selectedDiseases.forEach(disease => {
+                    const option = document.createElement('option');
+                    option.value = disease;
+                    option.textContent = disease;
+                    select.appendChild(option);
+                });
+            });
+        }
+        
+        // Add medicine
+        function addMedicine() {
+            const medicineList = document.getElementById('medicineList');
+            const medicineItem = document.createElement('div');
+            medicineItem.className = 'medicine-item';
+            medicineItem.innerHTML = `
+                <input type="text" class="form-input medicine-input" placeholder="Enter medicine name">
+                <select class="form-select disease-select">
+                    <option value="">For which disease?</option>
+                    ${selectedDiseases.map(d => `<option value="${d}">${d}</option>`).join('')}
+                </select>
+                <button class="remove-btn" onclick="removeMedicine(this)">✕</button>
+            `;
+            medicineList.appendChild(medicineItem);
+        }
+        
+        // Remove medicine
+        function removeMedicine(btn) {
+            btn.closest('.medicine-item').remove();
+        }
+        
+        // Analyze and predict
+        function analyzePrediction() {
+            const newCondition = document.getElementById('newCondition').value;
+            const ageGroup = document.getElementById('ageGroup').value;
+            
+            if (!newCondition || !ageGroup) {
+                alert('Please fill in all required fields');
+                return;
+            }
+            
+            // Show loading
+            document.getElementById('loadingOverlay').classList.add('active');
+            
+            // Simulate AI processing
+            setTimeout(() => {
+                generateResults(newCondition, ageGroup);
+                
+                // Hide loading
+                document.getElementById('loadingOverlay').classList.remove('active');
+                
+                // Hide form, show results
+                document.querySelector('.form-container').style.display = 'none';
+                document.querySelector('.progress-container').style.display = 'none';
+                document.getElementById('resultsContainer').classList.add('active');
+                
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }, 3000);
+        }
+        
+        // Generate results
+        function generateResults(newCondition, ageGroup) {
+            const resultsGrid = document.getElementById('resultsGrid');
+            resultsGrid.innerHTML = '';
+            
+            // Get predicted medicines for the new condition
+            const recommendedMedicines = predictedMedicines[newCondition] || ['Generic Medicine'];
+            
+            // Check for interactions
+            checkInteractions(recommendedMedicines);
+            
+            // Display results for each recommended medicine
+            recommendedMedicines.forEach(medicine => {
+                const sideEffects = sideEffectsDatabase[medicine] || [
+                    { effect: 'No specific data available', severity: 'low' }
+                ];
+                
+                const resultCard = document.createElement('div');
+                resultCard.className = 'result-card';
+                resultCard.innerHTML = `
+                    <h3 class="result-card-title">
+                        <span class="result-icon">💊</span>
+                        Recommended Medicine
+                    </h3>
+                    <div class="medicine-name">${medicine}</div>
+                    <div class="disease-tag">For: ${newCondition}</div>
+                    <h4 style="margin: 1.5rem 0 1rem; color: var(--text-secondary);">Potential Side Effects:</h4>
+                    <ul class="side-effects-list">
+                        ${sideEffects.map(se => `
+                            <li class="side-effect-item">
+                                <span>⚠️</span>
+                                <span>${se.effect}</span>
+                                <span class="severity severity-${se.severity}">${se.severity.toUpperCase()}</span>
+                            </li>
+                        `).join('')}
+                    </ul>
+                `;
+                resultsGrid.appendChild(resultCard);
+            });
+            
+            // Add cards for existing medications
+            currentMedicines.forEach(med => {
+                const sideEffects = sideEffectsDatabase[med.name] || [
+                    { effect: 'Consult your doctor for specific information', severity: 'low' }
+                ];
+                
+                const resultCard = document.createElement('div');
+                resultCard.className = 'result-card';
+                resultCard.innerHTML = `
+                    <h3 class="result-card-title">
+                        <span class="result-icon">💊</span>
+                        Current Medicine
+                    </h3>
+                    <div class="medicine-name">${med.name}</div>
+                    <div class="disease-tag">For: ${med.disease}</div>
+                    <h4 style="margin: 1.5rem 0 1rem; color: var(--text-secondary);">Known Side Effects:</h4>
+                    <ul class="side-effects-list">
+                        ${sideEffects.map(se => `
+                            <li class="side-effect-item">
+                                <span>⚠️</span>
+                                <span>${se.effect}</span>
+                                <span class="severity severity-${se.severity}">${se.severity.toUpperCase()}</span>
+                            </li>
+                        `).join('')}
+                    </ul>
+                `;
+                resultsGrid.appendChild(resultCard);
+            });
+        }
+        
+        // Check for drug interactions
+        function checkInteractions(newMedicines) {
+            const interactionsList = document.getElementById('interactionsList');
+            const interactionsWarning = document.getElementById('interactionsWarning');
+            interactionsList.innerHTML = '';
+            
+            let hasInteractions = false;
+            
+            // Check each new medicine against current medicines
+            newMedicines.forEach(newMed => {
+                currentMedicines.forEach(currentMed => {
+                    const key1 = `${newMed}+${currentMed.name}`;
+                    const key2 = `${currentMed.name}+${newMed}`;
+                    
+                    const interaction = interactionsDatabase[key1] || interactionsDatabase[key2];
+                    
+                    if (interaction) {
+                        hasInteractions = true;
+                        const interactionItem = document.createElement('div');
+                        interactionItem.className = 'interaction-item';
+                        interactionItem.innerHTML = `
+                            <div class="interaction-medicines">
+                                ${newMed} + ${currentMed.name}
+                            </div>
+                            <div style="color: var(--text-secondary);">${interaction}</div>
+                        `;
+                        interactionsList.appendChild(interactionItem);
+                    }
+                });
+            });
+            
+            if (hasInteractions) {
+                interactionsWarning.style.display = 'block';
+            } else {
+                interactionsWarning.style.display = 'none';
+            }
+        }
+        
+        // Reset form
+        function resetForm() {
+            currentStep = 1;
+            selectedDiseases = [];
+            currentMedicines = [];
+            
+            // Reset checkboxes
+            document.querySelectorAll('#diseasesGrid input[type="checkbox"]').forEach(cb => cb.checked = false);
+            
+            // Reset medicine list
+            const medicineList = document.getElementById('medicineList');
+            medicineList.innerHTML = `
+                <div class="medicine-item">
+                    <input type="text" class="form-input medicine-input" placeholder="Enter medicine name (e.g., Lisinopril)">
+                    <select class="form-select disease-select">
+                        <option value="">For which disease?</option>
+                    </select>
+                    <button class="remove-btn" onclick="removeMedicine(this)" style="display: none;">✕</button>
+                </div>
+            `;
+            
+            // Reset condition
+            document.getElementById('newCondition').value = '';
+            document.getElementById('ageGroup').value = '';
+            document.getElementById('additionalNotes').value = '';
+            
+            // Show form, hide results
+            document.querySelector('.form-container').style.display = 'block';
+            document.querySelector('.progress-container').style.display = 'block';
+            document.getElementById('resultsContainer').classList.remove('active');
+            
+            // Show first step
+            document.querySelectorAll('.step-content').forEach(content => content.classList.remove('active'));
+            document.querySelector('.step-content[data-step="1"]').classList.add('active');
+            
+            updateProgress();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+        
+        // Initialize
+        updateProgress();
+        
+        // Show remove button for additional medicines
+        document.addEventListener('click', (e) => {
+            if (e.target.classList.contains('add-medicine-btn')) {
+                const removeButtons = document.querySelectorAll('.remove-btn');
+                removeButtons.forEach(btn => btn.style.display = 'block');
+            }
+        });
+    </script>
+</body>
+</html>
