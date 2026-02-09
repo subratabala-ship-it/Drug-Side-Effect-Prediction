@@ -1,0 +1,4 @@
+backend/saved_models/*.pkl
+data/remaining_data.csv
+data/cleaned_medicine_data.csv
+data/raw/

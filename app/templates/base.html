@@ -48,18 +48,7 @@
         
         /* Animated Background */
         body::before {
-            content: '';
-            position: fixed;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: 
-                radial-gradient(circle at 20% 50%, rgba(124, 58, 237, 0.1) 0%, transparent 50%),
-                radial-gradient(circle at 80% 80%, rgba(0, 217, 255, 0.1) 0%, transparent 50%),
-                radial-gradient(circle at 40% 20%, rgba(236, 72, 153, 0.08) 0%, transparent 50%);
-            animation: rotate 60s linear infinite;
-            z-index: -1;
+          color: white;
         }
         
         @keyframes rotate {
@@ -67,21 +56,7 @@
             100% { transform: rotate(360deg); }
         }
         
-        /* Grid Pattern Overlay */
-        body::after {
-            content: '';
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-image: 
-                linear-gradient(rgba(0, 217, 255, 0.03) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(0, 217, 255, 0.03) 1px, transparent 1px);
-            background-size: 50px 50px;
-            pointer-events: none;
-            z-index: -1;
-        }
+      
         
         .container {
             max-width: 1400px;
@@ -1030,7 +1005,7 @@
         <div class="container">
             <nav>
                 <a href="index.html" class="logo">
-                    <div class="logo-icon">💊</div>
+                    <div class="logo-icon">🏥</div>
                     <span>MedPredict AI</span>
                 </a>
                 
@@ -1041,7 +1016,7 @@
                 </div>
                 
                 <ul class="nav-links" id="navLinks">
-                    <li><a href="index.html" class="active">Home</a></li>
+                    <li><a href="base.html" class="active">Home</a></li>
                     <li><a href="predict.html">Predict</a></li>
                     <li><a href="analysis.html">Analysis</a></li>
                     <li><a href="model_info.html">Model Info</a></li>
